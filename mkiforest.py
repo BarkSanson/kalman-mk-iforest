@@ -3,14 +3,14 @@ from filterpy.kalman import KalmanFilter
 from pymannkendall import yue_wang_modification_test
 from scipy.stats import wilcoxon
 from sklearn.ensemble import IsolationForest
-from river.drift import KSWIN
 
 
 class MKKalmanIForestPipeline:
     def __init__(self,
                  alpha: float = 0.05,
                  slope_threshold: float = 0.001,
-                 window_size: int = 64):
+                 window_size: int = 64,
+                 step_size: int = 1):
         self.model = IsolationForest()
         self.kf = KalmanFilter(dim_x=1, dim_z=1)
         self.kf.Q = 0.001
@@ -18,6 +18,9 @@ class MKKalmanIForestPipeline:
         self.kf.H = np.array([[1]])
         self.kf.x = np.array([0])
         self.kf.P = np.array([1])
+
+        self.step_size = step_size
+        self.current_step = 0
 
         self.alpha = alpha
         self.slope_threshold = slope_threshold
@@ -34,18 +37,21 @@ class MKKalmanIForestPipeline:
         self.retrains = 0
 
     def update(self, x):
-        self.raw_window = np.append(self.raw_window, x)
-
-        # Apply Kalman filter to current data
         self.kf.predict()
         self.kf.update(x)
 
         filtered_x = self.kf.x
 
-        self.filtered_window = np.append(self.filtered_window, filtered_x)
-
         if len(self.raw_window) < self.window_size:
+            self.raw_window = np.append(self.raw_window, x)
+            self.filtered_window = np.append(self.filtered_window, filtered_x)
             return None
+        else:
+            self.raw_window = np.roll(self.raw_window, -1)
+            self.raw_window[-1] = x
+
+            self.filtered_window = np.roll(self.filtered_window, -1)
+            self.filtered_window[-1] = filtered_x
 
         if not self.warm:
             self.reference_window = self.raw_window.copy()
@@ -57,10 +63,12 @@ class MKKalmanIForestPipeline:
             scores = self.model.score_samples(ref)
 
             self.warm = True
-            self.raw_window = np.array([])
-            self.filtered_window = np.array([])
 
             return scores
+
+        self.current_step += 1
+        if self.current_step < self.step_size:
+            return None
 
         _, h, _, _, _, _, _, slope, _ = \
             yue_wang_modification_test(self.filtered_window)
@@ -70,22 +78,19 @@ class MKKalmanIForestPipeline:
         # If the water level is rising or decreasing significantly, or the data is significantly different from the
         # reference, retrain the model
         if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
-            scores = self._retrain()
-            self.raw_window = np.array([])
-            self.filtered_window = np.array([])
-            return scores
+            self._retrain()
+        #if p_value < self.alpha:
+        #    self._retrain()
 
-        scores = self.model.score_samples(self.raw_window.reshape(-1, 1))
+        scores = self.model.score_samples(self.raw_window[len(self.raw_window) - self.step_size:].reshape(-1, 1))
 
-        self.raw_window = np.array([])
-        self.filtered_window = np.array([])
+        self.current_step = 0
+
         return scores
 
     def _retrain(self):
         self.reference_window = self.raw_window.copy()
         self.filtered_reference_window = self.filtered_window.copy()
-        self.model.fit(self.reference_window.reshape(-1, 1))
+        self.model.fit(self.raw_window.reshape(-1, 1))
         self.retrains += 1
         print(f"Retraining model... Number of retrains: {self.retrains}")
-
-        return self.model.score_samples(self.reference_window.reshape(-1, 1))

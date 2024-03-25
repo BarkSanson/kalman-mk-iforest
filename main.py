@@ -14,15 +14,16 @@ SLIDING = False
 
 
 def main():
-    window_size = 128
+    window_size = 512
     slope_threshold = 0.001
+    step_size = 1
 
-    df = pd.read_csv(f'data/{DATA[1]}')
+    df = pd.read_csv(f'data/{DATA[0]}')
 
     df = df.set_index(pd.to_datetime(df['dateTime']))
 
-    #df = df.drop(columns=['quality', 'dateTime'])
-    df = df.drop(columns=['quality', 'dateTime', 'completeness', 'qcode', 'date', 'measure'])
+    df = df.drop(columns=['quality', 'dateTime'])
+    #df = df.drop(columns=['quality', 'dateTime', 'completeness', 'qcode', 'date', 'measure'])
 
     #z_score = (df['value'] - df['value'].mean()) / df['value'].std()
     #df[abs(z_score) > 3] = df['value'].mean()
@@ -51,7 +52,7 @@ def main():
     #for i in range(2161, 2231):
     #    df.iloc[i] = flood[i - 2161]
 
-    mkif = MKKalmanIForestPipeline(window_size=window_size, slope_threshold=slope_threshold)
+    mkif = MKKalmanIForestPipeline(window_size=window_size, slope_threshold=slope_threshold, step_size=step_size)
 
     res = pd.DataFrame()
 
@@ -61,10 +62,12 @@ def main():
         if scores is not None:
             res = pd.concat([res, pd.DataFrame(scores)], ignore_index=True)
 
-    df = df[:len(res)]
+    # Shift the results to match the original data
+    df = df.iloc[:len(res)]
+    df['scores'] = res.values
 
     plt.plot(df.index, df['value'], label="Nivell de l'aigua")
-    plt.scatter(df.index, df['value'], c=res, cmap="seismic", s=0.5)
+    plt.scatter(df.index, df['value'], c=df['scores'], cmap="seismic", s=0.5)
     plt.colorbar()
     plt.title(f'MKiForest with {window_size} window size, {slope_threshold} slope threshold,'
               f'{"sliding window" if SLIDING else "batch window"}.png')
