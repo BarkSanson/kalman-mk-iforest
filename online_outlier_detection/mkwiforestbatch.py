@@ -24,7 +24,7 @@ class MKWIForestBatch:
 
         self.retrains = 0
 
-    def update(self, x) -> np.ndarray | None:
+    def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         self.raw_window = np.append(self.raw_window, x)
 
         if len(self.raw_window) < self.window_size:
@@ -42,7 +42,7 @@ class MKWIForestBatch:
             self.warm = True
             self.raw_window = np.array([])
 
-            return labels
+            return scores, labels
 
         _, h, _, _, _, _, _, slope, _ = \
             yue_wang_modification_test(self.raw_window)
@@ -54,17 +54,17 @@ class MKWIForestBatch:
         if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
             self._retrain()
 
-            scores = self.model.score_samples(self.reference_window.reshape(-1, 1))
+            scores = np.abs(self.model.score_samples(self.reference_window.reshape(-1, 1)))
             labels = np.where(scores > self.score_threshold, 1, 0)
 
             self.raw_window = np.array([])
-            return labels
+            return scores, labels
 
-        scores = self.model.score_samples(self.raw_window.reshape(-1, 1))
+        scores = np.abs(self.model.score_samples(self.raw_window.reshape(-1, 1)))
         labels = np.where(scores > self.score_threshold, 1, 0)
 
         self.raw_window = np.array([])
-        return labels
+        return scores, labels
 
     def _retrain(self):
         self.reference_window = self.raw_window.copy()

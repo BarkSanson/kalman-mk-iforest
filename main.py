@@ -1,57 +1,92 @@
+import os
+import sys
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from online_outlier_detection import \
     MKWKIForestBatch, MKWKIForestSliding, MKWIForestBatch, MKWIForestSliding
 
-
-DATA = [
-    'SunburyLock_2019-05-01_2019-07-15.csv',
-    'SunburyLock_2024-02-01_2024-02-29.csv',
-    'SunburyLock_2019-01-01_2024-02-01.csv'
-]
-
 SLIDING = False
 
 
+def merge_data(date_dir):
+    df = pd.DataFrame()
+    for file in os.listdir(date_dir):
+        new_df = pd.read_csv(f"{date_dir}/{file}")
+        new_df['block'] = file.split(sep="_")[1]
+        df = pd.concat([df, new_df])
+
+    df = df.set_index(pd.to_datetime(df['dateTime']))
+    df = df.drop(columns=['dateTime'])
+
+    return df
+
+
 def main():
-    score_threshold = 0.75
+    score_threshold = 0.65
     window_size = 128
     slope_threshold = 0.001
 
-    df = pd.read_csv(f'data/{DATA[1]}')
+    if len(sys.argv) != 2:
+        print("Usage:")
+        print("python main.py <data-directory-path>")
+        sys.exit(1)
 
-    df = df.set_index(pd.to_datetime(df['dateTime']))
+    data_dir = sys.argv[1]
 
-    df = df.drop(columns=['dateTime'])
+    if not os.path.isdir(data_dir):
+        print("Argument is not a directory")
 
-    mkif = MKWIForestSliding(
-        score_threshold=score_threshold,
-        window_size=window_size,
-        slope_threshold=slope_threshold)
+    data_list = [x for x in os.listdir(data_dir) if os.path.isdir(f"{data_dir}/{x}")]
 
-    res = pd.DataFrame()
+    for station in data_list:
+        path = f"{data_dir}/{station}"
 
-    for i, x in df.iterrows():
-        scores = mkif.update(x['value'])
+        for date in os.listdir(path):
+            models = [
+                MKWKIForestBatch(
+                    score_threshold=score_threshold,
+                    window_size=window_size,
+                    slope_threshold=slope_threshold),
+                MKWKIForestSliding(
+                    score_threshold=score_threshold,
+                    window_size=window_size,
+                    slope_threshold=slope_threshold),
+                MKWIForestBatch(
+                    score_threshold=score_threshold,
+                    window_size=window_size,
+                    slope_threshold=slope_threshold),
+                MKWIForestSliding(
+                    score_threshold=score_threshold,
+                    window_size=window_size,
+                    slope_threshold=slope_threshold)]
+            df = merge_data(f"{path}/{date}")
 
-        if scores is not None:
-            res = pd.concat([res, pd.DataFrame(scores)])
+            for model in models:
+                res = pd.DataFrame()
 
-    # Shift the results to match the original data
-    df = df.iloc[:len(res)]
-    df['label'] = res.values
-    df['label'] = df['label'].shift(1)
+                for i, x in df.iterrows():
+                    result = model.update(x['value'])
 
-    df = df.dropna(subset=['label'])
+                    if result is not None:
+                        scores, labels = result
+                        res = pd.concat([res, pd.DataFrame({'score': scores, 'label': labels})], ignore_index=True)
 
-    plt.figure()
-    plt.plot(df.index, df['value'], label='Water level')
-    plt.scatter(df.index, df['value'], c=df['label'], cmap='seismic', s=1)
-    plt.colorbar()
-    plt.title(f"MKWForestSliding with {window_size} window size, {slope_threshold} slope threshold"
-              f"and {score_threshold} score threshold")
-    plt.show()
+                df = df.iloc[:len(res)]
+
+                df['score'] = res['score'].values
+                df['label'] = res['label'].values
+
+                df = df.dropna(subset=['label', 'score'])
+
+                plt.figure()
+                plt.plot(df.index, df['value'], label='Water level')
+                plt.scatter(df.index, df['value'], c=df['label'], cmap='seismic', s=1)
+                plt.colorbar()
+                plt.title(f"MKWForestSliding with {window_size} window size, {slope_threshold} slope threshold"
+                          f"and {score_threshold} score threshold")
+                plt.show()
 
 
 if __name__ == '__main__':

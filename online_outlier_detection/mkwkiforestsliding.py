@@ -34,7 +34,7 @@ class MKWKIForestSliding:
 
         self.retrains = 0
 
-    def update(self, x) -> np.ndarray | None:
+    def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         # Apply Kalman filter to current data
         self.kf.predict()
         self.kf.update(x)
@@ -64,7 +64,7 @@ class MKWKIForestSliding:
 
             self.warm = True
 
-            return labels
+            return scores, labels
 
         _, h, _, _, _, _, _, slope, _ = \
             yue_wang_modification_test(self.filtered_window)
@@ -76,10 +76,10 @@ class MKWKIForestSliding:
         if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
             self._retrain()
 
-        score = self.model.score_samples(self.raw_window[-1])
+        score = np.abs(self.model.score_samples(self.raw_window[-1]))
         label = np.where(score > self.score_threshold, 1, 0)
 
-        return label
+        return score, label
 
     def _retrain(self):
         self.reference_window = self.raw_window.copy()
