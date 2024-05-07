@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
+from mkwiforestsliding import MKWIForestSliding
 from mkwkiforestbatch import MKWKIForestBatch
 
 DATA = [
@@ -14,6 +14,7 @@ SLIDING = False
 
 
 def main():
+    score_threshold = 0.75
     window_size = 128
     slope_threshold = 0.001
 
@@ -23,7 +24,10 @@ def main():
 
     df = df.drop(columns=['dateTime'])
 
-    mkif = MKWKIForestBatch(window_size=window_size, slope_threshold=slope_threshold)
+    mkif = MKWIForestSliding(
+        score_threshold=score_threshold,
+        window_size=window_size,
+        slope_threshold=slope_threshold)
 
     res = pd.DataFrame()
 
@@ -31,18 +35,21 @@ def main():
         scores = mkif.update(x['value'])
 
         if scores is not None:
-            res = pd.concat([res, pd.DataFrame(scores)], ignore_index=True)
+            res = pd.concat([res, pd.DataFrame(scores)])
 
-    df = df[:len(res)]
+    # Shift the results to match the original data
+    df = df.iloc[:len(res)]
+    df['label'] = res.values
+    df['label'] = df['label'].shift(1)
 
-    plt.plot(df.index, df['value'], label="Nivell de l'aigua")
-    plt.scatter(df.index, df['value'], c=res, cmap="seismic", s=0.5)
+    df = df.dropna(subset=['label'])
+
+    plt.figure()
+    plt.plot(df.index, df['value'], label='Water level')
+    plt.scatter(df.index, df['value'], c=df['label'], cmap='seismic', s=1)
     plt.colorbar()
-    plt.title(f'MKiForest with {window_size} window size, {slope_threshold} slope threshold,'
-              f'{"sliding window" if SLIDING else "batch window"}.png')
-
-    plt.savefig(f'MKiForest with {window_size} window size, {slope_threshold} slope threshold,'
-                f'{"sliding window" if SLIDING else "batch window"}.png')
+    plt.title(f"MKWForestSliding with {window_size} window size, {slope_threshold} slope threshold"
+              f"and {score_threshold} score threshold")
     plt.show()
 
 
