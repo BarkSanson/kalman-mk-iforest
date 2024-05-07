@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from mkwiforestsliding import MKWIForestSliding
-from mkwkiforestbatch import MKWKIForestBatch
+from online_outlier_detection import \
+    MKWKIForestBatch, MKWKIForestSliding, MKWIForestBatch, MKWIForestSliding
+
 
 DATA = [
     'SunburyLock_2019-05-01_2019-07-15.csv',
