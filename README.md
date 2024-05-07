@@ -41,3 +41,13 @@ have been done. Two of them follow the design mentioned in the previous paragrap
 `mkwkiforestsliding.py` use the Kalman filter before performing any detection.
 
 ## Usage
+If you haven't created one, create a virtual environment with your preferred tool
+and activate it. Then, install all dependencies using
+```bash
+pip install -r requirements.txt
+```
+
+Then, you can import the package using the usual
+```python
+from online_outlier_detection import #<your-import>
+```
