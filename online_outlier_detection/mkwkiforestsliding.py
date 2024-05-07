@@ -76,7 +76,7 @@ class MKWKIForestSliding:
         if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
             self._retrain()
 
-        score = np.abs(self.model.score_samples(self.raw_window[-1]))
+        score = np.abs(self.model.score_samples(self.raw_window[-1].reshape(1, -1)))
         label = np.where(score > self.score_threshold, 1, 0)
 
         return score, label
