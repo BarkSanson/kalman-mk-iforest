@@ -5,12 +5,11 @@ from scipy.stats import wilcoxon
 from sklearn.ensemble import IsolationForest
 
 
-class MKKalmanIForestPipeline:
+class MKWKIForestSliding:
     def __init__(self,
                  alpha: float = 0.05,
                  slope_threshold: float = 0.001,
-                 window_size: int = 64,
-                 step_size: int = 1):
+                 window_size: int = 64):
         self.model = IsolationForest()
         self.kf = KalmanFilter(dim_x=1, dim_z=1)
         self.kf.Q = 0.001
@@ -19,7 +18,6 @@ class MKKalmanIForestPipeline:
         self.kf.x = np.array([0])
         self.kf.P = np.array([1])
 
-        self.step_size = step_size
         self.current_step = 0
 
         self.alpha = alpha
@@ -66,10 +64,6 @@ class MKKalmanIForestPipeline:
 
             return scores
 
-        self.current_step += 1
-        if self.current_step < self.step_size:
-            return None
-
         _, h, _, _, _, _, _, slope, _ = \
             yue_wang_modification_test(self.filtered_window)
         d = np.around(self.raw_window - self.reference_window, decimals=3)
@@ -79,12 +73,8 @@ class MKKalmanIForestPipeline:
         # reference, retrain the model
         if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
             self._retrain()
-        #if p_value < self.alpha:
-        #    self._retrain()
 
-        scores = self.model.score_samples(self.raw_window[len(self.raw_window) - self.step_size:].reshape(-1, 1))
-
-        self.current_step = 0
+        scores = self.model.score_samples(self.raw_window[-1])
 
         return scores
 
