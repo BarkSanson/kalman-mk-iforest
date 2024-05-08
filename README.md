@@ -38,7 +38,9 @@ anomaly detection is only done over this last data point.
 As can be seen in the `online_outlier_detection` directory, 4 different implementations
 have been done. Two of them follow the design mentioned in the previous paragraph, which are
 `mkwiforestbatch.py` and `mkwiforestsliding.py`. The other two, namely `mkwkiforestbatch.py` and
-`mkwkiforestsliding.py` use the Kalman filter before performing any detection.
+`mkwkiforestsliding.py` use the Kalman filter before performing any detection. The Kalman filter is
+a well-know algorithm to reduce noise in signal data. It was added to these implementations
+to explore whether it reduces the number of retrainings.
 
 ## Usage
 If you haven't created one, create a virtual environment with your preferred tool
