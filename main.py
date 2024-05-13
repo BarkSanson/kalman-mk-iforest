@@ -24,7 +24,7 @@ def merge_data(date_dir):
 
 
 def main():
-    score_threshold = 0.65
+    score_threshold = 0.75
     window_size = 128
     slope_threshold = 0.001
     alpha = 0.05
@@ -94,8 +94,8 @@ def main():
 
                     plt.figure(figsize=(20, 10))
                     plt.plot(two_days.index, two_days['value'])
-                    plt.scatter(two_days.index, two_days['value'], c=two_days['label'], cmap='seismic', s=20)
-                    plt.colorbar()
+                    scatter = plt.scatter(two_days.index, two_days['value'], c=two_days['label'], cmap='seismic', s=20, label='Outliers')
+                    plt.legend(handles=scatter.legend_elements()[0], labels=['Normal', 'Outlier'])
                     plt.title(
                         f"{type(model).__name__} with {window_size} window size, {slope_threshold} slope threshold"
                         f"and {score_threshold} score threshold. Two days from {two_days_date}")
