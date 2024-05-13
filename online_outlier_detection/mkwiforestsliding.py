@@ -3,7 +3,7 @@ from pymannkendall import yue_wang_modification_test
 from scipy.stats import wilcoxon
 from sklearn.ensemble import IsolationForest
 
-from .slidingwindow import SlidingWindow
+from online_outlier_detection.window.sliding_window import SlidingWindow
 
 
 class MKWIForestSliding:

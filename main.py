@@ -7,7 +7,7 @@ import pandas as pd
 from online_outlier_detection import \
     MKWKIForestBatch, MKWKIForestSliding, MKWIForestBatch, MKWIForestSliding
 
-SLIDING = False
+RESULTS_DIR = "./results"
 
 
 def merge_data(date_dir):
@@ -61,11 +61,13 @@ def main():
                     score_threshold=score_threshold,
                     window_size=window_size,
                     slope_threshold=slope_threshold)]
+
             df = merge_data(f"{path}/{date}")
 
             for model in models:
                 res = pd.DataFrame()
 
+                print(f"Applying {type(model).__name__}")
                 for i, x in df.iterrows():
                     result = model.update(x['value'])
 
@@ -77,16 +79,32 @@ def main():
 
                 df['score'] = res['score'].values
                 df['label'] = res['label'].values
-
                 df = df.dropna(subset=['label', 'score'])
 
-                plt.figure()
-                plt.plot(df.index, df['value'], label='Water level')
-                plt.scatter(df.index, df['value'], c=df['label'], cmap='seismic', s=1)
-                plt.colorbar()
-                plt.title(f"MKWForestSliding with {window_size} window size, {slope_threshold} slope threshold"
-                          f"and {score_threshold} score threshold")
-                plt.show()
+                save_path = f"{RESULTS_DIR}/{type(model).__name__}/{station}/{date}"
+                os.makedirs(save_path, exist_ok=True)
+
+                for two_days_date in df['block'].unique():
+                    two_days = df[df['block'] == two_days_date]
+
+                    plt.figure(figsize=(20, 10))
+                    plt.plot(two_days.index, two_days['value'])
+                    plt.scatter(two_days.index, two_days['value'], c=two_days['label'], cmap='seismic', s=20)
+                    plt.colorbar()
+                    plt.title(
+                        f"{type(model).__name__} with {window_size} window size, {slope_threshold} slope threshold"
+                        f"and {score_threshold} score threshold. Two days from {two_days_date}")
+
+                    plt.savefig(
+                        f"{save_path}/"
+                        f"score-thresh={score_threshold}_"
+                        f"window_size={window_size}_"
+                        f"slope-thresh={slope_threshold}_"
+                        f"two_days={two_days_date}.png")
+
+                df.to_csv(
+                    f"{save_path}/"
+                    f"score-thresh={score_threshold}_window_size={window_size}_slope-thresh={slope_threshold}.csv")
 
 
 if __name__ == '__main__':

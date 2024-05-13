@@ -4,7 +4,7 @@ from pymannkendall import yue_wang_modification_test
 from scipy.stats import wilcoxon
 from sklearn.ensemble import IsolationForest
 
-from .slidingwindow import SlidingWindow
+from online_outlier_detection.window.sliding_window import SlidingWindow
 
 
 class MKWKIForestSliding:
@@ -64,7 +64,7 @@ class MKWKIForestSliding:
             return scores, labels
 
         _, h, _, _, _, _, _, slope, _ = \
-            yue_wang_modification_test(self.filtered_sliding_window)
+            yue_wang_modification_test(self.filtered_sliding_window.get())
         d = np.around(self.sliding_window.get() - self.reference_window, decimals=3)
         stat, p_value = wilcoxon(d)
 
