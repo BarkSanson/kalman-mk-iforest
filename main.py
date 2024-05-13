@@ -25,17 +25,17 @@ def merge_data(date_dir):
 
 
 def main():
-    score_threshold = 0.75
     window_size = 128
     slope_threshold = 0.001
     alpha = 0.05
 
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Usage:")
-        print("python main.py <data-directory-path>")
+        print("python main.py <data-directory-path> <score_threshold>")
         sys.exit(1)
 
     data_dir = sys.argv[1]
+    score_threshold = float(sys.argv[2])
 
     if not os.path.isdir(data_dir):
         print("Argument is not a directory")
