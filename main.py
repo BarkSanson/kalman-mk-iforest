@@ -27,6 +27,7 @@ def main():
     score_threshold = 0.65
     window_size = 128
     slope_threshold = 0.001
+    alpha = 0.05
 
     if len(sys.argv) != 2:
         print("Usage:")
@@ -47,18 +48,22 @@ def main():
             models = [
                 MKWKIForestBatch(
                     score_threshold=score_threshold,
+                    alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold),
                 MKWKIForestSliding(
                     score_threshold=score_threshold,
+                    alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold),
                 MKWIForestBatch(
                     score_threshold=score_threshold,
+                    alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold),
                 MKWIForestSliding(
                     score_threshold=score_threshold,
+                    alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold)]
 
