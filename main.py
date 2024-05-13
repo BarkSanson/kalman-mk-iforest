@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -41,6 +42,8 @@ def main():
 
     data_list = [x for x in os.listdir(data_dir) if os.path.isdir(f"{data_dir}/{x}")]
 
+    time_report = pd.DataFrame(columns=['station', 'date', 'model', 'time'])
+
     for station in data_list:
         path = f"{data_dir}/{station}"
 
@@ -72,6 +75,7 @@ def main():
             for model in models:
                 res = pd.DataFrame()
 
+                initial_time = time.time()
                 print(f"Applying {type(model).__name__}")
                 for i, x in df.iterrows():
                     result = model.update(x['value'])
@@ -79,6 +83,13 @@ def main():
                     if result is not None:
                         scores, labels = result
                         res = pd.concat([res, pd.DataFrame({'score': scores, 'label': labels})], ignore_index=True)
+
+                time_report = pd.concat([time_report, pd.DataFrame({
+                    'station': [station],
+                    'date': [date],
+                    'model': [type(model).__name__],
+                    'time': [time.time() - initial_time]
+                })], ignore_index=True)
 
                 df = df.iloc[:len(res)]
 
@@ -94,7 +105,8 @@ def main():
 
                     plt.figure(figsize=(20, 10))
                     plt.plot(two_days.index, two_days['value'])
-                    scatter = plt.scatter(two_days.index, two_days['value'], c=two_days['label'], cmap='seismic', s=20, label='Outliers')
+                    scatter = plt.scatter(two_days.index, two_days['value'], c=two_days['label'], cmap='seismic', s=20,
+                                          label='Outliers')
                     plt.legend(handles=scatter.legend_elements()[0], labels=['Normal', 'Outlier'])
                     plt.title(
                         f"{type(model).__name__} with {window_size} window size, {slope_threshold} slope threshold"
@@ -110,6 +122,8 @@ def main():
                 df.to_csv(
                     f"{save_path}/"
                     f"score-thresh={score_threshold}_window_size={window_size}_slope-thresh={slope_threshold}.csv")
+
+    time_report.to_csv(f"{RESULTS_DIR}/time_report.csv")
 
 
 if __name__ == '__main__':
