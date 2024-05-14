@@ -1,13 +1,13 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
-from online_outlier_detection.base.batch_detector import BatchDetector
-from online_outlier_detection.base.kalman_based_detector import KalmanBasedDetector
+from online_outlier_detection.base.batch_detector_pipeline import BatchDetectorPipeline
+from online_outlier_detection.base.kalman_based_detector_pipeline import KalmanBasedDetectorPipeline
 from online_outlier_detection.drift import MannKendallWilcoxonDriftDetector
 from online_outlier_detection.window.batch_window import BatchWindow
 
 
-class MKWKIForestBatch(BatchDetector, KalmanBasedDetector):
+class MKWKIForestBatchPipeline(BatchDetectorPipeline, KalmanBasedDetectorPipeline):
     def __init__(self,
                  score_threshold: float,
                  alpha: float,

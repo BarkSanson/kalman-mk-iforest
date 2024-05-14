@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from online_outlier_detection import \
-    MKWKIForestBatch, MKWKIForestSliding, MKWIForestBatch, MKWIForestSliding
+    MKWKIForestBatchPipeline, MKWKIForestSlidingPipeline, MKWIForestBatchPipeline, MKWIForestSlidingPipeline
 
 RESULTS_DIR = "./results"
 
@@ -49,22 +49,22 @@ def main():
 
         for date in os.listdir(path):
             models = [
-                MKWKIForestBatch(
+                MKWKIForestBatchPipeline(
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold),
-                MKWKIForestSliding(
+                MKWKIForestSlidingPipeline(
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold),
-                MKWIForestBatch(
+                MKWIForestBatchPipeline(
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold),
-                MKWIForestSliding(
+                MKWIForestSlidingPipeline(
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,

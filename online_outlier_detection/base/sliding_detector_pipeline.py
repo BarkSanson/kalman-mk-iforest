@@ -1,10 +1,10 @@
 import numpy as np
 
-from online_outlier_detection.base.base_detector_pipeline import BaseDetector
+from online_outlier_detection.base.base_detector_pipeline import BaseDetectorPipeline
 from online_outlier_detection.window.sliding_window import SlidingWindow
 
 
-class SlidingDetector(BaseDetector):
+class SlidingDetectorPipeline(BaseDetectorPipeline):
     def __init__(self,
                  score_threshold: float,
                  alpha: float,

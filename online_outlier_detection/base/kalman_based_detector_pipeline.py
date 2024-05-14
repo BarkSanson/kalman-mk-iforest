@@ -1,10 +1,10 @@
 import numpy as np
 from filterpy.kalman import KalmanFilter
 
-from online_outlier_detection.base.base_detector_pipeline import BaseDetector
+from online_outlier_detection.base.base_detector_pipeline import BaseDetectorPipeline
 
 
-class KalmanBasedDetector(BaseDetector):
+class KalmanBasedDetectorPipeline(BaseDetectorPipeline):
     def __init__(self,
                  score_threshold: float,
                  alpha: float,

@@ -1,10 +1,10 @@
 import numpy as np
 
-from .base_detector_pipeline import BaseDetector
+from .base_detector_pipeline import BaseDetectorPipeline
 from online_outlier_detection.window.batch_window import BatchWindow
 
 
-class BatchDetector(BaseDetector):
+class BatchDetectorPipeline(BaseDetectorPipeline):
     def __init__(self,
                  score_threshold: float,
                  alpha: float,

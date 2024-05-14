@@ -1,13 +1,13 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
-from online_outlier_detection.base.kalman_based_detector import KalmanBasedDetector
-from online_outlier_detection.base.sliding_detector import SlidingDetector
+from online_outlier_detection.base.kalman_based_detector_pipeline import KalmanBasedDetectorPipeline
+from online_outlier_detection.base.sliding_detector_pipeline import SlidingDetectorPipeline
 from online_outlier_detection.drift import MannKendallWilcoxonDriftDetector
 from online_outlier_detection.window.sliding_window import SlidingWindow
 
 
-class MKWKIForestSliding(SlidingDetector, KalmanBasedDetector):
+class MKWKIForestSlidingPipeline(SlidingDetectorPipeline, KalmanBasedDetectorPipeline):
     def __init__(self,
                  score_threshold: float,
                  alpha: float,

@@ -6,7 +6,7 @@ from online_outlier_detection.window import Window
 from online_outlier_detection.drift import BaseDriftDetector
 
 
-class BaseDetector(ABC):
+class BaseDetectorPipeline(ABC):
     def __init__(self,
                  score_threshold: float,
                  alpha: float,
