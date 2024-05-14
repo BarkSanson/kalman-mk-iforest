@@ -33,7 +33,7 @@ class MKWIForestSlidingPipeline(SlidingDetectorPipeline):
         if self.drift_detector.detect_drift(self.window.get(), self.reference_window):
             self._retrain()
 
-        score = np.abs(self.model.score_samples(self.window.get()[-1].reshape(1, -1)))
+        score = np.abs(self.model.score_samples(self.window.get()[-self.step_size].reshape(1, -1)))
         label = np.where(score > self.score_threshold, 1, 0)
 
         self.current_step = 0
