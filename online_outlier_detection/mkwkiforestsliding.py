@@ -42,13 +42,7 @@ class MKWKIForestSliding(SlidingDetector, KalmanBasedDetector):
         _, h, _, _, _, _, _, slope, _ = \
             yue_wang_modification_test(self.filtered_window.get())
         d = np.around(self.filtered_window.get() - self.filtered_reference_window, decimals=3)
-        stat, p_value = wilcoxon(d)
+        stat, p_value = wilcoxon(d, zero_method='zsplit')
 
         # Data distribution is changing enough to retrain the model
-        if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
-            self._retrain()
-
-        score = np.abs(self.model.score_samples(self.window.get()[-1].reshape(1, -1)))
-        label = np.where(score > self.score_threshold, 1, 0)
-
-        return score, label
+        return self._check_retrain_and_predict(h, slope, p_value)

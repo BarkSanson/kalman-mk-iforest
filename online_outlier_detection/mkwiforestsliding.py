@@ -30,16 +30,4 @@ class MKWIForestSliding(SlidingDetector):
         stat, p_value = wilcoxon(d)
 
         # Data distribution is changing enough to retrain the model
-        if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
-            self._retrain()
-
-        score = np.abs(self.model.score_samples(self.window.get()[-1].reshape(1, -1)))
-        label = np.where(score > self.score_threshold, 1, 0)
-
-        return score, label
-
-    def _retrain(self):
-        self.reference_window = self.window.get().copy()
-        self.model.fit(self.reference_window.reshape(-1, 1))
-        self.retrains += 1
-        print(f"Retraining model... Number of retrains: {self.retrains}")
+        return self._check_retrain_and_predict(h, slope, p_value)

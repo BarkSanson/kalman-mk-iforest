@@ -26,8 +26,5 @@ class KalmanBasedDetector(BaseDetector):
         pass
 
     def _retrain(self):
-        self.reference_window = self.window.get().copy()
+        super()._retrain()
         self.filtered_reference_window = self.filtered_window.get().copy()
-        self.model.fit(self.reference_window.reshape(-1, 1))
-        self.retrains += 1
-        print(f"Retraining model... Number of retrains: {self.retrains}")

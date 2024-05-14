@@ -76,7 +76,7 @@ def main():
                 res = pd.DataFrame()
 
                 initial_time = time.time()
-                print(f"Applying {type(model).__name__}")
+                print(f"Applying {type(model).__name__} to {station} on {date}...")
                 for i, x in df.iterrows():
                     result = model.update(x['value'])
 
@@ -118,6 +118,7 @@ def main():
                         f"window_size={window_size}_"
                         f"slope-thresh={slope_threshold}_"
                         f"two_days={two_days_date}.png")
+                    plt.close()
 
                 df.to_csv(
                     f"{save_path}/"

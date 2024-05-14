@@ -47,21 +47,7 @@ class MKWKIForestBatch(BatchDetector, KalmanBasedDetector):
         d = np.around(self.filtered_window.get() - self.filtered_reference_window, decimals=3)
         stat, p_value = wilcoxon(d)
 
-        # If the water level is rising or decreasing significantly, or the data is significantly different from the
-        # reference, retrain the model
-        if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
-            self._retrain()
-
-            scores = np.abs(self.model.score_samples(self.reference_window.reshape(-1, 1)))
-            labels = np.where(scores > self.score_threshold, 1, 0)
-
-            self.window.clear()
-            self.filtered_window.clear()
-            return scores, labels
-
-        scores = np.abs(self.model.score_samples(self.window.get().reshape(-1, 1)))
-        labels = np.where(scores > self.score_threshold, 1, 0)
-
-        self.window.clear()
+        scores, labels = self._check_retrain_and_predict(h, slope, p_value)
         self.filtered_window.clear()
+
         return scores, labels

@@ -29,23 +29,4 @@ class MKWIForestBatch(BatchDetector):
         d = np.around(self.window.get() - self.reference_window, decimals=3)
         stat, p_value = wilcoxon(d)
 
-        if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
-            self._retrain()
-
-            scores = np.abs(self.model.score_samples(self.reference_window.reshape(-1, 1)))
-            labels = np.where(scores > self.score_threshold, 1, 0)
-
-            self.window.clear()
-            return scores, labels
-
-        scores = np.abs(self.model.score_samples(self.window.get().reshape(-1, 1)))
-        labels = np.where(scores > self.score_threshold, 1, 0)
-
-        self.window.clear()
-        return scores, labels
-
-    def _retrain(self):
-        self.reference_window = self.window.get().copy()
-        self.model.fit(self.reference_window.reshape(-1, 1))
-        self.retrains += 1
-        print(f"Retraining model... Number of retrains: {self.retrains}")
+        return self._check_retrain_and_predict(h, slope, p_value)

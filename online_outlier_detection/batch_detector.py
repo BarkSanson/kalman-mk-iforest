@@ -22,3 +22,20 @@ class BatchDetector(BaseDetector):
 
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         pass
+
+    def _check_retrain_and_predict(self, h, slope, p_value):
+        if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
+            self._retrain()
+
+            scores = np.abs(self.model.score_samples(self.reference_window.reshape(-1, 1)))
+            labels = np.where(scores > self.score_threshold, 1, 0)
+
+            self.window.clear()
+            return scores, labels
+
+        scores = np.abs(self.model.score_samples(self.window.get().reshape(-1, 1)))
+        labels = np.where(scores > self.score_threshold, 1, 0)
+
+        self.window.clear()
+        return scores, labels
+
