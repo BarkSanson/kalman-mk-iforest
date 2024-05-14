@@ -1,9 +1,8 @@
 import numpy as np
-from pymannkendall import yue_wang_modification_test
-from scipy.stats import wilcoxon
 from sklearn.ensemble import IsolationForest
 
-from online_outlier_detection.sliding_detector import SlidingDetector
+from online_outlier_detection.base.sliding_detector import SlidingDetector
+from online_outlier_detection.drift.mann_kendall_wilcoxon_drift_detector import MannKendallWilcoxonDriftDetector
 
 
 class MKWIForestSliding(SlidingDetector):
@@ -13,7 +12,9 @@ class MKWIForestSliding(SlidingDetector):
                  slope_threshold: float,
                  window_size: int):
         super().__init__(score_threshold, alpha, slope_threshold, window_size)
+
         self.model = IsolationForest()
+        self.drift_detector = MannKendallWilcoxonDriftDetector(alpha, slope_threshold)
 
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         self.window.append(x)
@@ -24,10 +25,10 @@ class MKWIForestSliding(SlidingDetector):
         if not self.warm:
             return self._first_training()
 
-        _, h, _, _, _, _, _, slope, _ = \
-            yue_wang_modification_test(self.window.get())
-        d = np.around(self.window.get() - self.reference_window, decimals=3)
-        stat, p_value = wilcoxon(d)
+        if self.drift_detector.detect_drift(self.window.get(), self.reference_window):
+            self._retrain()
 
-        # Data distribution is changing enough to retrain the model
-        return self._check_retrain_and_predict(h, slope, p_value)
+        score = np.abs(self.model.score_samples(self.window.get()[-1].reshape(1, -1)))
+        label = np.where(score > self.score_threshold, 1, 0)
+
+        return score, label

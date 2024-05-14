@@ -26,7 +26,7 @@ def merge_data(date_dir):
 
 def main():
     window_size = 128
-    slope_threshold = 0.001
+    slope_threshold = 0.01
     alpha = 0.05
 
     if len(sys.argv) != 3:

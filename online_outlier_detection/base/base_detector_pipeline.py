@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+
 from online_outlier_detection.window import Window
+from online_outlier_detection.drift import BaseDriftDetector
 
 
 class BaseDetector(ABC):
@@ -18,6 +20,7 @@ class BaseDetector(ABC):
         self.score_threshold = score_threshold
 
         self.window: Window = None # Dunno if this is the most 'pythonic' way to do this
+        self.drift_detector: BaseDriftDetector = None # Same
         self.reference_window = np.array([])
 
         self.warm = False

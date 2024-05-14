@@ -1,6 +1,6 @@
 import numpy as np
 
-from online_outlier_detection.base_detector import BaseDetector
+from online_outlier_detection.base.base_detector_pipeline import BaseDetector
 from online_outlier_detection.window.sliding_window import SlidingWindow
 
 
@@ -16,12 +16,3 @@ class SlidingDetector(BaseDetector):
 
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         pass
-
-    def _check_retrain_and_predict(self, h, slope, p_value) -> tuple[np.ndarray, np.ndarray]:
-        if (h and abs(slope) >= self.slope_threshold) or p_value < self.alpha:
-            self._retrain()
-
-        score = np.abs(self.model.score_samples(self.window.get()[-1].reshape(1, -1)))
-        label = np.where(score > self.score_threshold, 1, 0)
-
-        return score, label

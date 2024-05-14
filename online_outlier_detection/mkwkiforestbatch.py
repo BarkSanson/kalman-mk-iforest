@@ -1,12 +1,10 @@
 import numpy as np
-from filterpy.kalman import KalmanFilter
-from pymannkendall import yue_wang_modification_test
-from scipy.stats import wilcoxon
 from sklearn.ensemble import IsolationForest
 
-from online_outlier_detection.batch_detector import BatchDetector
+from online_outlier_detection.base.batch_detector import BatchDetector
+from online_outlier_detection.base.kalman_based_detector import KalmanBasedDetector
+from online_outlier_detection.drift import MannKendallWilcoxonDriftDetector
 from online_outlier_detection.window.batch_window import BatchWindow
-from online_outlier_detection.kalman_based_detector import KalmanBasedDetector
 
 
 class MKWKIForestBatch(BatchDetector, KalmanBasedDetector):
@@ -17,7 +15,7 @@ class MKWKIForestBatch(BatchDetector, KalmanBasedDetector):
                  window_size: int):
         super().__init__(score_threshold, alpha, slope_threshold, window_size)
         self.model = IsolationForest()
-
+        self.drift_detector = MannKendallWilcoxonDriftDetector(alpha, slope_threshold)
         self.filtered_window = BatchWindow(window_size)
 
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
@@ -42,12 +40,19 @@ class MKWKIForestBatch(BatchDetector, KalmanBasedDetector):
 
             return scores, labels
 
-        _, h, _, _, _, _, _, slope, _ = \
-            yue_wang_modification_test(self.filtered_window.get())
-        d = np.around(self.filtered_window.get() - self.filtered_reference_window, decimals=3)
-        stat, p_value = wilcoxon(d)
+        if self.drift_detector.detect_drift(self.filtered_window.get(), self.filtered_reference_window):
+            self._retrain()
 
-        scores, labels = self._check_retrain_and_predict(h, slope, p_value)
+            scores = np.abs(self.model.score_samples(self.reference_window.reshape(-1, 1)))
+            labels = np.where(scores > self.score_threshold, 1, 0)
+
+            self.window.clear()
+            self.filtered_window.clear()
+            return scores, labels
+
+        scores = np.abs(self.model.score_samples(self.window.get().reshape(-1, 1)))
+        labels = np.where(scores > self.score_threshold, 1, 0)
+
+        self.window.clear()
         self.filtered_window.clear()
-
         return scores, labels

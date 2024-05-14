@@ -1,9 +1,8 @@
 import numpy as np
-from pymannkendall import yue_wang_modification_test
-from scipy.stats import wilcoxon
 from sklearn.ensemble import IsolationForest
 
-from online_outlier_detection.batch_detector import BatchDetector
+from online_outlier_detection.base.batch_detector import BatchDetector
+from online_outlier_detection.drift import MannKendallWilcoxonDriftDetector
 
 
 class MKWIForestBatch(BatchDetector):
@@ -14,6 +13,7 @@ class MKWIForestBatch(BatchDetector):
                  window_size: int):
         super().__init__(score_threshold, alpha, slope_threshold, window_size)
         self.model = IsolationForest()
+        self.drift_detector = MannKendallWilcoxonDriftDetector(alpha, slope_threshold)
 
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         self.window.append(x)
@@ -24,9 +24,17 @@ class MKWIForestBatch(BatchDetector):
         if not self.warm:
             return self._first_training()
 
-        _, h, _, _, _, _, _, slope, _ = \
-            yue_wang_modification_test(self.window.get())
-        d = np.around(self.window.get() - self.reference_window, decimals=3)
-        stat, p_value = wilcoxon(d)
+        if self.drift_detector.detect_drift(self.window.get(), self.reference_window):
+            self._retrain()
 
-        return self._check_retrain_and_predict(h, slope, p_value)
+            scores = np.abs(self.model.score_samples(self.reference_window.reshape(-1, 1)))
+            labels = np.where(scores > self.score_threshold, 1, 0)
+
+            self.window.clear()
+            return scores, labels
+
+        scores = np.abs(self.model.score_samples(self.window.get().reshape(-1, 1)))
+        labels = np.where(scores > self.score_threshold, 1, 0)
+
+        self.window.clear()
+        return scores, labels
