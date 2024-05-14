@@ -28,6 +28,7 @@ def main():
     window_size = 128
     slope_threshold = 0.01
     alpha = 0.05
+    step = 5
 
     if len(sys.argv) != 3:
         print("Usage:")
@@ -58,7 +59,8 @@ def main():
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
-                    slope_threshold=slope_threshold),
+                    slope_threshold=slope_threshold,
+                    step=step),
                 MKWIForestBatchPipeline(
                     score_threshold=score_threshold,
                     alpha=alpha,
@@ -68,7 +70,8 @@ def main():
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
-                    slope_threshold=slope_threshold)]
+                    slope_threshold=slope_threshold,
+                    step=step)]
 
             df = merge_data(f"{path}/{date}")
 

@@ -9,10 +9,13 @@ class SlidingDetectorPipeline(BaseDetectorPipeline):
                  score_threshold: float,
                  alpha: float,
                  slope_threshold: float,
-                 window_size: int):
+                 window_size: int,
+                 step_size: int):
         super().__init__(score_threshold, alpha, slope_threshold, window_size)
 
         self.window = SlidingWindow(self.window_size)
+        self.step_size = step_size
+        self.current_step = 0
 
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         pass

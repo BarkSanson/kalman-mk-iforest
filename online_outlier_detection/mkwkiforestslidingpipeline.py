@@ -12,8 +12,9 @@ class MKWKIForestSlidingPipeline(SlidingDetectorPipeline, KalmanBasedDetectorPip
                  score_threshold: float,
                  alpha: float,
                  slope_threshold: float,
-                 window_size: int):
-        super().__init__(score_threshold, alpha, slope_threshold, window_size)
+                 window_size: int,
+                 step: int = 1):
+        super().__init__(score_threshold, alpha, slope_threshold, window_size, step)
         self.model = IsolationForest()
         self.drift_detector = MannKendallWilcoxonDriftDetector(alpha, slope_threshold)
 
@@ -39,11 +40,17 @@ class MKWKIForestSlidingPipeline(SlidingDetectorPipeline, KalmanBasedDetectorPip
 
             return scores, labels
 
+        if self.current_step < self.step_size:
+            self.current_step += 1
+            return None
+
         if self.drift_detector.detect_drift(self.filtered_window.get(), self.filtered_reference_window):
             self._retrain()
 
         score = np.abs(self.model.score_samples(self.window.get()[-1].reshape(1, -1)))
         label = np.where(score > self.score_threshold, 1, 0)
+
+        self.current_step = 0
 
         return score, label
 
