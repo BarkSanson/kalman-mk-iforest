@@ -92,18 +92,21 @@ def main():
 
                 total_time = time.time() - initial_time
 
-
                 df = df.iloc[:len(res)]
 
                 true_labels = df['label']
                 predicted_labels = res['label']
 
-                accuracy, precision, recall, f1, roc_auc = \
+                accuracy, precision, recall, f1, = \
                     accuracy_score(true_labels, predicted_labels), \
                     precision_score(true_labels, predicted_labels), \
                     recall_score(true_labels, predicted_labels), \
-                    f1_score(true_labels, predicted_labels), \
-                    roc_auc_score(true_labels, predicted_labels)
+                    f1_score(true_labels, predicted_labels)
+
+                try:
+                    roc_auc = roc_auc_score(true_labels, predicted_labels)
+                except ValueError as e:  # If only one class is present in the data
+                    roc_auc = float('nan')  # Terrible solution, but it should work for my use case
 
                 report = pd.concat([report, pd.DataFrame({
                     'station': [station],
