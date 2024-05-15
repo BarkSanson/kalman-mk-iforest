@@ -158,7 +158,7 @@ def main():
                   f"report_"
                   f"score-thresh={score_threshold}_"
                   f"window-size={window_size}_"
-                  f"slope-thresh={slope_threshold}.csv")
+                  f"slope-thresh={slope_threshold}.csv", index=False)
 
 
 if __name__ == '__main__':
