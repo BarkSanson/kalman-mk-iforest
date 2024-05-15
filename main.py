@@ -46,7 +46,8 @@ def main():
 
     data_list = [x for x in os.listdir(data_dir) if os.path.isdir(f"{data_dir}/{x}")]
 
-    report = pd.DataFrame(columns=['station', 'date', 'model', 'time'])
+    report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time',
+                                   'accuracy', 'precision', 'recall', 'f1', 'roc_auc'])
 
     for station in data_list:
         path = f"{data_dir}/{station}"
