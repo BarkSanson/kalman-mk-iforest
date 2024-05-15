@@ -2,6 +2,9 @@ import os
 import sys
 import time
 
+from sklearn.metrics import \
+    accuracy_score, f1_score, recall_score, precision_score, roc_auc_score, confusion_matrix
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -43,7 +46,7 @@ def main():
 
     data_list = [x for x in os.listdir(data_dir) if os.path.isdir(f"{data_dir}/{x}")]
 
-    time_report = pd.DataFrame(columns=['station', 'date', 'model', 'time'])
+    report = pd.DataFrame(columns=['station', 'date', 'model', 'time'])
 
     for station in data_list:
         path = f"{data_dir}/{station}"
@@ -87,14 +90,32 @@ def main():
                         scores, labels = result
                         res = pd.concat([res, pd.DataFrame({'score': scores, 'label': labels})], ignore_index=True)
 
-                time_report = pd.concat([time_report, pd.DataFrame({
-                    'station': [station],
-                    'date': [date],
-                    'model': [type(model).__name__],
-                    'time': [time.time() - initial_time]
-                })], ignore_index=True)
+                total_time = time.time() - initial_time
+
 
                 df = df.iloc[:len(res)]
+
+                true_labels = df['label']
+                predicted_labels = res['label']
+
+                accuracy, precision, recall, f1, roc_auc = \
+                    accuracy_score(true_labels, predicted_labels), \
+                    precision_score(true_labels, predicted_labels), \
+                    recall_score(true_labels, predicted_labels), \
+                    f1_score(true_labels, predicted_labels), \
+                    roc_auc_score(true_labels, predicted_labels)
+
+                report = pd.concat([report, pd.DataFrame({
+                    'station': [station],
+                    '3_weeks_start_date': [date],
+                    'model': [type(model).__name__],
+                    'time': [total_time],
+                    'accuracy': [accuracy],
+                    'precision': [precision],
+                    'recall': [recall],
+                    'f1': [f1],
+                    'roc_auc': [roc_auc]
+                })], ignore_index=True)
 
                 df['score'] = res['score'].values
                 df['label'] = res['label'].values
@@ -125,9 +146,15 @@ def main():
 
                 df.to_csv(
                     f"{save_path}/"
-                    f"score-thresh={score_threshold}_window_size={window_size}_slope-thresh={slope_threshold}.csv")
+                    f"score-thresh={score_threshold}_"
+                    f"window-size={window_size}_"
+                    f"slope-thresh={slope_threshold}.csv")
 
-    time_report.to_csv(f"{RESULTS_DIR}/time_report.csv")
+    report.to_csv(f"{RESULTS_DIR}/"
+                  f"report_"
+                  f"score-thresh={score_threshold}_"
+                  f"window-size={window_size}_"
+                  f"slope-thresh={slope_threshold}.csv")
 
 
 if __name__ == '__main__':
