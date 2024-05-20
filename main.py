@@ -49,6 +49,12 @@ def main():
     report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time',
                                    'accuracy', 'precision', 'recall', 'f1', 'roc_auc'])
 
+    results = {
+        'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
+        'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
+        'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
+        'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels'])
+    }
     for station in data_list:
         path = f"{data_dir}/{station}"
 
@@ -95,8 +101,12 @@ def main():
 
                 df = df.iloc[:len(res)]
 
-                true_labels = df['label']
-                predicted_labels = res['label']
+                true_labels = df['label'].values
+                predicted_labels = res['label'].values
+
+                results[type(model).__name__] = pd.concat([
+                    results[type(model).__name__],
+                    pd.DataFrame([true_labels, predicted_labels])], ignore_index=True)
 
                 accuracy, precision, recall, f1, = \
                     accuracy_score(true_labels, predicted_labels), \
@@ -106,7 +116,7 @@ def main():
 
                 try:
                     roc_auc = roc_auc_score(true_labels, predicted_labels)
-                except ValueError as e:  # If only one class is present in the data
+                except ValueError:  # If only one class is present in the data
                     roc_auc = float('nan')  # Terrible solution, but it should work for my use case
 
                 report = pd.concat([report, pd.DataFrame({
@@ -159,6 +169,17 @@ def main():
                   f"score-thresh={score_threshold}_"
                   f"window-size={window_size}_"
                   f"slope-thresh={slope_threshold}.csv", index=False)
+
+    for model in results:
+        cm = confusion_matrix(results[model]['true_labels'], results[model]['predicted_labels'])
+        # Plot confusion matrix
+        plt.figure(figsize=(10, 10))
+        plt.matshow(cm, cmap='Blues')
+        plt.colorbar()
+        plt.ylabel('Etiquetas reales')
+        plt.xlabel('Etiquetas predichas')
+        plt.title(f"Matriz de confusión de {model}")
+        plt.savefig(f"{RESULTS_DIR}/{model}/confusion_matrix.png")
 
 
 if __name__ == '__main__':
