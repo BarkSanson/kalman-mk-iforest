@@ -64,24 +64,24 @@ def main():
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
-                    slope_threshold=slope_threshold),
-                MKWKIForestSlidingPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold,
-                    step=step),
-                MKWIForestBatchPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold),
-                MKWIForestSlidingPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold,
-                    step=step)]
+                    slope_threshold=slope_threshold)]
+                #MKWKIForestSlidingPipeline(
+                #    score_threshold=score_threshold,
+                #    alpha=alpha,
+                #    window_size=window_size,
+                #    slope_threshold=slope_threshold,
+                #    step=step),
+                #MKWIForestBatchPipeline(
+                #    score_threshold=score_threshold,
+                #    alpha=alpha,
+                #    window_size=window_size,
+                #    slope_threshold=slope_threshold),
+                #MKWIForestSlidingPipeline(
+                #    score_threshold=score_threshold,
+                #    alpha=alpha,
+                #    window_size=window_size,
+                #    slope_threshold=slope_threshold,
+                #    step=step)]
 
             df = merge_data(f"{path}/{date}")
 
@@ -106,7 +106,7 @@ def main():
 
                 results[type(model).__name__] = pd.concat([
                     results[type(model).__name__],
-                    pd.DataFrame([true_labels, predicted_labels])], ignore_index=True)
+                    pd.DataFrame({'true_labels': true_labels, 'predicted_labels': predicted_labels})], ignore_index=True)
 
                 accuracy, precision, recall, f1, = \
                     accuracy_score(true_labels, predicted_labels), \
@@ -171,7 +171,7 @@ def main():
                   f"slope-thresh={slope_threshold}.csv", index=False)
 
     for model in results:
-        cm = confusion_matrix(results[model]['true_labels'], results[model]['predicted_labels'])
+        cm = confusion_matrix(pd.to_numeric(results[model]['true_labels']), pd.to_numeric(results[model]['predicted_labels']))
         # Plot confusion matrix
         plt.figure(figsize=(10, 10))
         plt.matshow(cm, cmap='Blues')
