@@ -6,6 +6,7 @@ from sklearn.metrics import \
     accuracy_score, f1_score, recall_score, precision_score, roc_auc_score, confusion_matrix
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pandas as pd
 
 from online_outlier_detection import \
@@ -51,9 +52,9 @@ def main():
 
     results = {
         'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
-        'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
-        'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
-        'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels'])
+        #'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
+        #'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
+        #'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels'])
     }
     for station in data_list:
         path = f"{data_dir}/{station}"
@@ -64,24 +65,24 @@ def main():
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
-                    slope_threshold=slope_threshold),
-                MKWKIForestSlidingPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold,
-                    step=step),
-                MKWIForestBatchPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold),
-                MKWIForestSlidingPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold,
-                    step=step)]
+                    slope_threshold=slope_threshold),]
+                #MKWKIForestSlidingPipeline(
+                #    score_threshold=score_threshold,
+                #    alpha=alpha,
+                #    window_size=window_size,
+                #    slope_threshold=slope_threshold,
+                #    step=step),
+                #MKWIForestBatchPipeline(
+                #    score_threshold=score_threshold,
+                #    alpha=alpha,
+                #    window_size=window_size,
+                #    slope_threshold=slope_threshold),
+                #MKWIForestSlidingPipeline(
+                #    score_threshold=score_threshold,
+                #    alpha=alpha,
+                #    window_size=window_size,
+                #    slope_threshold=slope_threshold,
+                #    step=step)]
 
             df = merge_data(f"{path}/{date}")
 
@@ -171,11 +172,18 @@ def main():
                   f"slope-thresh={slope_threshold}.csv", index=False)
 
     for model in results:
-        cm = confusion_matrix(pd.to_numeric(results[model]['true_labels']), pd.to_numeric(results[model]['predicted_labels']))
+        cm = confusion_matrix(
+            pd.to_numeric(results[model]['true_labels']),
+            pd.to_numeric(results[model]['predicted_labels']))
         # Plot confusion matrix
         plt.figure(figsize=(10, 10))
-        plt.matshow(cm, cmap='Blues')
-        plt.colorbar()
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt='d',
+            cmap='Blues',
+            xticklabels=['Normal', 'Outlier'],
+            yticklabels=['Normal', 'Outlier'])
         plt.ylabel('Etiquetas reales')
         plt.xlabel('Etiquetas predichas')
         plt.title(f"Matriz de confusión de {model}")
