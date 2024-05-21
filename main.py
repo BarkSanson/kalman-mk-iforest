@@ -47,8 +47,7 @@ def main():
 
     data_list = [x for x in os.listdir(data_dir) if os.path.isdir(f"{data_dir}/{x}")]
 
-    report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time',
-                                   'accuracy', 'precision', 'recall', 'f1', 'roc_auc'])
+    report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time'])
 
     results = {
         'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
@@ -104,32 +103,18 @@ def main():
 
                 true_labels = df['label'].values
                 predicted_labels = res['label'].values
+                scores = res['score'].values
 
                 results[type(model).__name__] = pd.concat([
                     results[type(model).__name__],
-                    pd.DataFrame({'true_labels': true_labels, 'predicted_labels': predicted_labels})], ignore_index=True)
-
-                accuracy, precision, recall, f1, = \
-                    accuracy_score(true_labels, predicted_labels), \
-                    precision_score(true_labels, predicted_labels), \
-                    recall_score(true_labels, predicted_labels), \
-                    f1_score(true_labels, predicted_labels)
-
-                try:
-                    roc_auc = roc_auc_score(true_labels, predicted_labels)
-                except ValueError:  # If only one class is present in the data
-                    roc_auc = float('nan')  # Terrible solution, but it should work for my use case
+                    pd.DataFrame({'true_labels': true_labels, 'predicted_labels': predicted_labels, 'score': scores})],
+                    ignore_index=True)
 
                 report = pd.concat([report, pd.DataFrame({
                     'station': [station],
                     '3_weeks_start_date': [date],
                     'model': [type(model).__name__],
                     'time': [total_time],
-                    'accuracy': [accuracy],
-                    'precision': [precision],
-                    'recall': [recall],
-                    'f1': [f1],
-                    'roc_auc': [roc_auc]
                 })], ignore_index=True)
 
                 df['score'] = res['score'].values
@@ -165,16 +150,17 @@ def main():
                     f"window-size={window_size}_"
                     f"slope-thresh={slope_threshold}.csv")
 
-    report.to_csv(f"{RESULTS_DIR}/"
-                  f"report_"
-                  f"score-thresh={score_threshold}_"
-                  f"window-size={window_size}_"
-                  f"slope-thresh={slope_threshold}.csv", index=False)
-
     for model in results:
-        cm = confusion_matrix(
-            pd.to_numeric(results[model]['true_labels']),
-            pd.to_numeric(results[model]['predicted_labels']))
+        true_labels = pd.to_numeric(results[model]['true_labels'])
+        predicted_labels = pd.to_numeric(results[model]['predicted_labels'])
+        scores = pd.to_numeric(results[model]['scores'])
+        accuracy, precision, recall, f1, cm, roc_auc = \
+            accuracy_score(true_labels, predicted_labels), \
+            precision_score(true_labels, predicted_labels), \
+            recall_score(true_labels, predicted_labels), \
+            f1_score(true_labels, predicted_labels), \
+            confusion_matrix(true_labels, predicted_labels), \
+            roc_auc_score(true_labels, scores)
         # Plot confusion matrix
         plt.figure(figsize=(10, 10))
         sns.heatmap(
@@ -188,6 +174,19 @@ def main():
         plt.xlabel('Etiquetas predichas')
         plt.title(f"Matriz de confusión de {model}")
         plt.savefig(f"{RESULTS_DIR}/{model}/confusion_matrix.png")
+
+        metrics = pd.DataFrame({
+            'accuracy': [accuracy],
+            'precision': [precision],
+            'recall': [recall],
+            'f1': [f1],
+            'roc_auc': [roc_auc],
+            'mean_time': [report[report['model'] == model]['time'].mean()]
+        })
+        metrics.to_csv(f"{RESULTS_DIR}/{model}/"
+                       f"metrics_score-thresh={score_threshold}_"
+                       f"window-size={window_size}_"
+                       f"slope-thresh={slope_threshold}.csv", index=False)
 
 
 if __name__ == '__main__':
