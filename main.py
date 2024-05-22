@@ -65,23 +65,23 @@ def main():
                     alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold),
-                MKWKIForestSlidingPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold,
-                    step=step),
+                # MKWKIForestSlidingPipeline(
+                #     score_threshold=score_threshold,
+                #     alpha=alpha,
+                #     window_size=window_size,
+                #     slope_threshold=slope_threshold,
+                #     step=step),
                 MKWIForestBatchPipeline(
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
-                    slope_threshold=slope_threshold),
-                MKWIForestSlidingPipeline(
-                    score_threshold=score_threshold,
-                    alpha=alpha,
-                    window_size=window_size,
-                    slope_threshold=slope_threshold,
-                    step=step)]
+                    slope_threshold=slope_threshold)]
+            # MKWIForestSlidingPipeline(
+            #    score_threshold=score_threshold,
+            #    alpha=alpha,
+            #    window_size=window_size,
+            #    slope_threshold=slope_threshold,
+            #    step=step)]
 
             df = merge_data(f"{path}/{date}")
 
@@ -99,9 +99,9 @@ def main():
 
                 total_time = time.time() - initial_time
 
-                df = df.iloc[:len(res)]
+                matching_df = df.iloc[:len(res)]
 
-                true_labels = df['label'].values
+                true_labels = matching_df['label'].values
                 predicted_labels = res['label'].values
                 scores = res['score'].values
 
@@ -117,17 +117,14 @@ def main():
                     'time': [total_time],
                 })], ignore_index=True)
 
-                df['score'] = res['score'].values
-                df['label'] = res['label'].values
-                df = df.dropna(subset=['label', 'score'])
-
                 save_path = f"{RESULTS_DIR}/{type(model).__name__}/{station}/{date}"
                 os.makedirs(save_path, exist_ok=True)
 
-                for two_days_date in df['block'].unique():
-                    print(f"Plotting {type(model).__name__} with {window_size} window size, {slope_threshold} slope for "
-                          f"{two_days_date}...")
-                    two_days = df[df['block'] == two_days_date]
+                for two_days_date in matching_df['block'].unique():
+                    print(
+                        f"Plotting {type(model).__name__} with {window_size} window size, {slope_threshold} slope for "
+                        f"{two_days_date}...")
+                    two_days = matching_df[matching_df['block'] == two_days_date]
 
                     plt.figure(figsize=(20, 10))
                     plt.plot(two_days.index, two_days['value'])
