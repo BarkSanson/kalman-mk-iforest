@@ -32,15 +32,15 @@ def main():
     window_size = 128
     slope_threshold = 0.01
     alpha = 0.05
-    step = 5
 
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print("Usage:")
         print("python main.py <data-directory-path> <score_threshold>")
         sys.exit(1)
 
     data_dir = sys.argv[1]
     score_threshold = float(sys.argv[2])
+    step = int(sys.argv[3])
 
     if not os.path.isdir(data_dir):
         print("Argument is not a directory")
@@ -60,22 +60,22 @@ def main():
 
         for date in os.listdir(path):
             models = [
-                #MKWKIForestBatchPipeline(
-                #    score_threshold=score_threshold,
-                #    alpha=alpha,
-                #    window_size=window_size,
-                #    slope_threshold=slope_threshold),
+                MKWKIForestBatchPipeline(
+                    score_threshold=score_threshold,
+                    alpha=alpha,
+                    window_size=window_size,
+                    slope_threshold=slope_threshold),
                 MKWKIForestSlidingPipeline(
                     score_threshold=score_threshold,
                     alpha=alpha,
                     window_size=window_size,
                     slope_threshold=slope_threshold,
                     step=step),
-                #MKWIForestBatchPipeline(
-                #    score_threshold=score_threshold,
-                #    alpha=alpha,
-                #    window_size=window_size,
-                #    slope_threshold=slope_threshold),
+                MKWIForestBatchPipeline(
+                    score_threshold=score_threshold,
+                    alpha=alpha,
+                    window_size=window_size,
+                    slope_threshold=slope_threshold),
                 MKWIForestSlidingPipeline(
                    score_threshold=score_threshold,
                    alpha=alpha,
