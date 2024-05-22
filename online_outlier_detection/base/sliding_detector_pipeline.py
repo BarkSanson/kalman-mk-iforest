@@ -15,7 +15,7 @@ class SlidingDetectorPipeline(BaseDetectorPipeline):
 
         self.window = SlidingWindow(self.window_size)
         self.step_size = step_size
-        self.current_step = 0
+        self.current_step = 1
 
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         pass
