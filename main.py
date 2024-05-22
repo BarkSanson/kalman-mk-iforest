@@ -125,6 +125,8 @@ def main():
                 os.makedirs(save_path, exist_ok=True)
 
                 for two_days_date in df['block'].unique():
+                    print(f"Plotting {type(model).__name__} with {window_size} window size, {slope_threshold} slope for "
+                          f"{two_days_date}...")
                     two_days = df[df['block'] == two_days_date]
 
                     plt.figure(figsize=(20, 10))
@@ -139,10 +141,9 @@ def main():
                     plt.savefig(
                         f"{save_path}/"
                         f"score-thresh={score_threshold}_"
-                        f"window_size={window_size}_"
+                        f"window-size={window_size}_"
                         f"slope-thresh={slope_threshold}_"
                         f"two_days={two_days_date}.png")
-                    plt.close()
 
                 df.to_csv(
                     f"{save_path}/"
