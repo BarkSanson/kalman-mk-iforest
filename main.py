@@ -50,10 +50,10 @@ def main():
     report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time'])
 
     results = {
-        'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
-        'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
-        'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels']),
-        'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_labels', 'predicted_labels'])
+        'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+        'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+        'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+        'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score'])
     }
     for station in data_list:
         path = f"{data_dir}/{station}"
@@ -107,7 +107,7 @@ def main():
 
                 results[type(model).__name__] = pd.concat([
                     results[type(model).__name__],
-                    pd.DataFrame({'true_labels': true_labels, 'predicted_labels': predicted_labels, 'score': scores})],
+                    pd.DataFrame({'true_label': true_labels, 'predicted_label': predicted_labels, 'score': scores})],
                     ignore_index=True)
 
                 report = pd.concat([report, pd.DataFrame({
@@ -151,9 +151,9 @@ def main():
                     f"slope-thresh={slope_threshold}.csv")
 
     for model in results:
-        true_labels = pd.to_numeric(results[model]['true_labels'])
-        predicted_labels = pd.to_numeric(results[model]['predicted_labels'])
-        scores = pd.to_numeric(results[model]['scores'])
+        true_labels = pd.to_numeric(results[model]['true_label'])
+        predicted_labels = pd.to_numeric(results[model]['predicted_label'])
+        scores = pd.to_numeric(results[model]['score'])
         accuracy, precision, recall, f1, cm, roc_auc = \
             accuracy_score(true_labels, predicted_labels), \
             precision_score(true_labels, predicted_labels), \
