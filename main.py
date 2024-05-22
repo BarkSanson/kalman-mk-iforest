@@ -2,15 +2,13 @@ import os
 import sys
 import time
 
+import pandas as pd
 from sklearn.metrics import \
     accuracy_score, f1_score, recall_score, precision_score, roc_auc_score, confusion_matrix
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-
 from online_outlier_detection import \
     MKWKIForestBatchPipeline, MKWKIForestSlidingPipeline, MKWIForestBatchPipeline, MKWIForestSlidingPipeline
+from plots import plot_confusion_matrix, plot_time_series_with_labels
 
 RESULTS_DIR = "./results"
 
@@ -35,7 +33,7 @@ def main():
 
     if len(sys.argv) != 4:
         print("Usage:")
-        print("python main.py <data-directory-path> <score_threshold>")
+        print("python main.py <data-directory-path> <score_threshold> <step>")
         sys.exit(1)
 
     data_dir = sys.argv[1]
@@ -77,11 +75,11 @@ def main():
                     window_size=window_size,
                     slope_threshold=slope_threshold),
                 MKWIForestSlidingPipeline(
-                   score_threshold=score_threshold,
-                   alpha=alpha,
-                   window_size=window_size,
-                   slope_threshold=slope_threshold,
-                   step=step)]
+                    score_threshold=score_threshold,
+                    alpha=alpha,
+                    window_size=window_size,
+                    slope_threshold=slope_threshold,
+                    step=step)]
 
             df = merge_data(f"{path}/{date}")
 
@@ -125,22 +123,8 @@ def main():
                         f"Plotting {type(model).__name__} with {window_size} window size, {slope_threshold} slope for "
                         f"{two_days_date}...")
                     two_days = matching_df[matching_df['block'] == two_days_date]
-
-                    plt.figure(figsize=(20, 10))
-                    plt.plot(two_days.index, two_days['value'])
-                    scatter = plt.scatter(two_days.index, two_days['value'], c=two_days['label'], cmap='seismic', s=20,
-                                          label='Outliers')
-                    plt.legend(handles=scatter.legend_elements()[0], labels=['Normal', 'Outlier'])
-                    plt.title(
-                        f"{type(model).__name__} with {window_size} window size, {slope_threshold} slope threshold"
-                        f"and {score_threshold} score threshold. Two days from {two_days_date}")
-
-                    plt.savefig(
-                        f"{save_path}/"
-                        f"score-thresh={score_threshold}_"
-                        f"window-size={window_size}_"
-                        f"slope-thresh={slope_threshold}_"
-                        f"two_days={two_days_date}.png")
+                    plot_time_series_with_labels(two_days, window_size, slope_threshold, score_threshold,
+                                                 two_days_date, save_path, type(model).__name__)
 
                 df.to_csv(
                     f"{save_path}/"
@@ -159,19 +143,8 @@ def main():
             f1_score(true_labels, predicted_labels), \
             confusion_matrix(true_labels, predicted_labels), \
             roc_auc_score(true_labels, scores)
-        # Plot confusion matrix
-        plt.figure(figsize=(10, 10))
-        sns.heatmap(
-            cm,
-            annot=True,
-            fmt='d',
-            cmap='Blues',
-            xticklabels=['Normal', 'Outlier'],
-            yticklabels=['Normal', 'Outlier'])
-        plt.ylabel('Etiquetas reales')
-        plt.xlabel('Etiquetas predichas')
-        plt.title(f"Matriz de confusión de {model}")
-        plt.savefig(f"{RESULTS_DIR}/{model}/confusion_matrix.png")
+
+        plot_confusion_matrix(cm, RESULTS_DIR, model)
 
         metrics = pd.DataFrame({
             'accuracy': [accuracy],
