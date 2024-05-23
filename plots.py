@@ -4,7 +4,13 @@ import pandas as pd
 import seaborn as sns
 
 
-def plot_confusion_matrix(cm: np.ndarray, results_dir: str, model: str) -> None:
+def plot_confusion_matrix(
+        cm: np.ndarray,
+        results_dir: str,
+        model: str,
+        window_size: int,
+        slope_threshold: float,
+        score_threshold: float) -> None:
     plt.figure(figsize=(10, 10))
     sns.heatmap(
         cm,
@@ -16,7 +22,10 @@ def plot_confusion_matrix(cm: np.ndarray, results_dir: str, model: str) -> None:
     plt.ylabel('Etiquetas reales')
     plt.xlabel('Etiquetas predichas')
     plt.title(f"Matriz de confusión de {model}")
-    plt.savefig(f"{results_dir}/{model}/confusion_matrix.png")
+    plt.savefig(f"{results_dir}/{model}/"
+                f"confusion-matrix_"
+                f"window-size={window_size}_"
+                f"score-thresh={score_threshold}.png")
 
 
 def plot_time_series_with_labels(df: pd.DataFrame, window_size: int, slope_threshold: float,
