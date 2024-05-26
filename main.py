@@ -52,22 +52,22 @@ def main():
 
             for date in os.listdir(path):
                 models = [
-                    #MKWKIForestBatchPipeline(
-                    #    score_threshold=score_threshold,
-                    #    alpha=ALPHA,
-                    #    window_size=window_size,
-                    #    slope_threshold=SLOPE_THRESHOLD),
+                    MKWKIForestBatchPipeline(
+                        score_threshold=score_threshold,
+                        alpha=ALPHA,
+                        window_size=window_size,
+                        slope_threshold=SLOPE_THRESHOLD),
                     MKWKIForestSlidingPipeline(
                         score_threshold=score_threshold,
                         alpha=ALPHA,
                         window_size=window_size,
                         slope_threshold=SLOPE_THRESHOLD,
                         step=step),
-                    #MKWIForestBatchPipeline(
-                    #    score_threshold=score_threshold,
-                    #    alpha=ALPHA,
-                    #    window_size=window_size,
-                    #    slope_threshold=SLOPE_THRESHOLD),
+                    MKWIForestBatchPipeline(
+                        score_threshold=score_threshold,
+                        alpha=ALPHA,
+                        window_size=window_size,
+                        slope_threshold=SLOPE_THRESHOLD),
                     MKWIForestSlidingPipeline(
                         score_threshold=score_threshold,
                         alpha=ALPHA,
