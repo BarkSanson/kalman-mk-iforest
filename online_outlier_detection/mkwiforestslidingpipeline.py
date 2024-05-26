@@ -11,7 +11,7 @@ class MKWIForestSlidingPipeline(SlidingDetectorPipeline):
                  alpha: float,
                  slope_threshold: float,
                  window_size: int,
-                 step: float = 1):
+                 step: int = 1):
         super().__init__(score_threshold, alpha, slope_threshold, window_size, step)
 
         self.model = IsolationForest()
@@ -26,16 +26,14 @@ class MKWIForestSlidingPipeline(SlidingDetectorPipeline):
         if not self.warm:
             return self._first_training()
 
-        if self.current_step < self.step_size:
+        if self.current_step >= self.step_size:
+            if self.drift_detector.detect_drift(self.window.get(), self.reference_window):
+                self._retrain()
+            self.current_step = 1
+        else:
             self.current_step += 1
-            return None
 
-        if self.drift_detector.detect_drift(self.window.get(), self.reference_window):
-            self._retrain()
-
-        score = np.abs(self.model.score_samples(self.window.get()[-self.step_size:].reshape(-1, 1)))
+        score = np.abs(self.model.score_samples(self.window.get()[-1].reshape(-1, 1)))
         label = np.where(score > self.score_threshold, 1, 0)
-
-        self.current_step = 1
 
         return score, label
