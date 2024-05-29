@@ -25,7 +25,11 @@ class BaseDetectorPipeline(ABC):
 
         self.warm = False
 
-        self.retrains = 0
+        self._retrains = 0
+
+    @property
+    def retrains(self):
+        return self._retrains
 
     @abstractmethod
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
@@ -47,5 +51,5 @@ class BaseDetectorPipeline(ABC):
     def _retrain(self):
         self.reference_window = self.window.get().copy()
         self.model.fit(self.reference_window.reshape(-1, 1))
-        self.retrains += 1
-        print(f"Retraining model... Number of retrains: {self.retrains}")
+        self._retrains += 1
+        print(f"Retraining model... Number of retrains: {self._retrains}")

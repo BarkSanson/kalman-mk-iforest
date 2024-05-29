@@ -108,6 +108,7 @@ def main():
                         '3_weeks_start_date': [date],
                         'model': [type(model).__name__],
                         'time': [total_time],
+                        'retrains': [model.retrains]
                     })], ignore_index=True)
 
                     save_path = f"{results_path}/{type(model).__name__}/{station}/{date}"
@@ -147,7 +148,8 @@ def main():
                     'recall': [recall],
                     'f1': [f1],
                     'roc_auc': [roc_auc],
-                    'mean_time': [report[report['model'] == model]['time'].mean()]
+                    'mean_time': [report[report['model'] == model]['time'].mean()],
+                    'mean_retrains': [report[report['model'] == model]['retrains'].mean()]
                 })
                 metrics.to_csv(f"{results_path}/{model}/"
                                f"metrics_score-thresh={score_threshold}_"
