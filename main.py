@@ -37,17 +37,17 @@ def main():
 
     data_list = [x for x in os.listdir(data_path) if os.path.isdir(f"{data_path}/{x}")]
 
-    for station in data_list:
-        path = f"{data_path}/{station}"
+    for window_size in window_sizes:
+        results = {
+            'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+            'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+            'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+            'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score'])
+        }
+        report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time', 'retrains'])
+        for station in data_list:
+            path = f"{data_path}/{station}"
 
-        for window_size in window_sizes:
-            results = {
-                'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
-                'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
-                'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
-                'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score'])
-            }
-            report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time', 'retrains'])
             for date in os.listdir(path):
                 models = [
                     MKWKIForestBatchPipeline(
@@ -126,33 +126,33 @@ def main():
                         f"window-size={window_size}_"
                         f"slope-thresh={SLOPE_THRESHOLD}.csv")
 
-            for model in results:
-                true_labels = pd.to_numeric(results[model]['true_label'])
-                predicted_labels = pd.to_numeric(results[model]['predicted_label'])
-                scores = pd.to_numeric(results[model]['score'])
-                accuracy, precision, recall, f1, cm, roc_auc = \
-                    accuracy_score(true_labels, predicted_labels), \
-                    precision_score(true_labels, predicted_labels), \
-                    recall_score(true_labels, predicted_labels), \
-                    f1_score(true_labels, predicted_labels), \
-                    confusion_matrix(true_labels, predicted_labels), \
-                    roc_auc_score(true_labels, scores)
+        for model in results:
+            true_labels = pd.to_numeric(results[model]['true_label'])
+            predicted_labels = pd.to_numeric(results[model]['predicted_label'])
+            scores = pd.to_numeric(results[model]['score'])
+            accuracy, precision, recall, f1, cm, roc_auc = \
+                accuracy_score(true_labels, predicted_labels), \
+                precision_score(true_labels, predicted_labels), \
+                recall_score(true_labels, predicted_labels), \
+                f1_score(true_labels, predicted_labels), \
+                confusion_matrix(true_labels, predicted_labels), \
+                roc_auc_score(true_labels, scores)
 
-                plot_confusion_matrix(cm, results_path, model, window_size, SLOPE_THRESHOLD, score_threshold)
+            plot_confusion_matrix(cm, results_path, model, window_size, SLOPE_THRESHOLD, score_threshold)
 
-                metrics = pd.DataFrame({
-                    'accuracy': [accuracy],
-                    'precision': [precision],
-                    'recall': [recall],
-                    'f1': [f1],
-                    'roc_auc': [roc_auc],
-                    'mean_time': [report[report['model'] == model]['time'].mean()],
-                    'mean_retrains': [report[report['model'] == model]['retrains'].mean()]
-                })
-                metrics.to_csv(f"{results_path}/{model}/"
-                               f"metrics_score-thresh={score_threshold}_"
-                               f"window-size={window_size}_"
-                               f"score-thresh={score_threshold}.csv", index=False)
+            metrics = pd.DataFrame({
+                'accuracy': [accuracy],
+                'precision': [precision],
+                'recall': [recall],
+                'f1': [f1],
+                'roc_auc': [roc_auc],
+                'mean_time': [report[report['model'] == model]['time'].mean()],
+                'mean_retrains': [report[report['model'] == model]['retrains'].mean()]
+            })
+            metrics.to_csv(f"{results_path}/{model}/"
+                           f"metrics_score-thresh={score_threshold}_"
+                           f"window-size={window_size}_"
+                           f"score-thresh={score_threshold}.csv", index=False)
 
 
 if __name__ == '__main__':
