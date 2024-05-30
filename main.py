@@ -37,19 +37,17 @@ def main():
 
     data_list = [x for x in os.listdir(data_path) if os.path.isdir(f"{data_path}/{x}")]
 
-    report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time'])
-
-    results = {
-        'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
-        'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
-        'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
-        'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score'])
-    }
     for station in data_list:
         path = f"{data_path}/{station}"
 
         for window_size in window_sizes:
-
+            results = {
+                'MKWKIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+                'MKWKIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+                'MKWIForestBatchPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score']),
+                'MKWIForestSlidingPipeline': pd.DataFrame(columns=['true_label', 'predicted_label', 'score'])
+            }
+            report = pd.DataFrame(columns=['station', '3_weeks_start_date', 'model', 'time', 'retrains'])
             for date in os.listdir(path):
                 models = [
                     MKWKIForestBatchPipeline(
@@ -116,8 +114,8 @@ def main():
 
                     for two_days_date in matching_df['block'].unique():
                         print(
-                            f"Plotting {type(model).__name__} with {window_size} window size, {SLOPE_THRESHOLD} slope for "
-                            f"{two_days_date}...")
+                            f"Plotting {type(model).__name__} with {window_size} window size, {SLOPE_THRESHOLD} slope "
+                            f"for {two_days_date}...")
                         two_days = matching_df[matching_df['block'] == two_days_date]
                         plot_time_series_with_labels(two_days, window_size, SLOPE_THRESHOLD, score_threshold,
                                                      two_days_date, save_path, type(model).__name__)
