@@ -20,6 +20,8 @@ def main():
         for week in weeks:
             data_days = os.listdir(f"{data_dir}/{station}/{week}")
             for two_days in data_days:
+                if not two_days.endswith(".csv"):
+                    continue
                 data = pd.read_csv(f"{data_dir}/{station}/{week}/{two_days}")
                 station, date, kind = two_days.split("_")
                 kind = kind[0]
