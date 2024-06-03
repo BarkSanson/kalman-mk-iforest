@@ -9,7 +9,6 @@ def plot_confusion_matrix(
         results_dir: str,
         model: str,
         window_size: int,
-        slope_threshold: float,
         score_threshold: float) -> None:
     plt.figure(figsize=(10, 10))
     sns.heatmap(

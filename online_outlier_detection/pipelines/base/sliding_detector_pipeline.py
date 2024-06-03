@@ -1,6 +1,6 @@
 import numpy as np
 
-from online_outlier_detection.base.base_detector_pipeline import BaseDetectorPipeline
+from online_outlier_detection.pipelines.base.base_detector_pipeline import BaseDetectorPipeline
 from online_outlier_detection.window.sliding_window import SlidingWindow
 
 

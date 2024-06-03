@@ -1,4 +1,1 @@
-from .mkwkiforestbatchpipeline import MKWKIForestBatchPipeline
-from .mkwiforestbatchpipeline import MKWIForestBatchPipeline
-from .mkwiforestslidingpipeline import MKWIForestSlidingPipeline
-from .mkwkiforestslidingpipeline import MKWKIForestSlidingPipeline
+from online_outlier_detection.pipelines.mkwiforestbatchpipeline import MKWIForestBatchPipeline

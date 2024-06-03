@@ -6,7 +6,7 @@ from sklearn.metrics import \
     accuracy_score, f1_score, recall_score, precision_score, roc_auc_score, confusion_matrix
 
 from args import parse_args
-from online_outlier_detection import \
+from online_outlier_detection.pipelines import \
     MKWKIForestBatchPipeline, MKWKIForestSlidingPipeline, MKWIForestBatchPipeline, MKWIForestSlidingPipeline
 from plots import plot_confusion_matrix, plot_time_series_with_labels
 
@@ -138,7 +138,7 @@ def main():
                 confusion_matrix(true_labels, predicted_labels), \
                 roc_auc_score(true_labels, scores)
 
-            plot_confusion_matrix(cm, results_path, model, window_size, SLOPE_THRESHOLD, score_threshold)
+            plot_confusion_matrix(cm, results_path, model, window_size, score_threshold)
 
             metrics = pd.DataFrame({
                 'accuracy': [accuracy],

@@ -1,13 +1,11 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
-from online_outlier_detection.base.kalman_based_detector_pipeline import KalmanBasedDetectorPipeline
-from online_outlier_detection.base.sliding_detector_pipeline import SlidingDetectorPipeline
-from online_outlier_detection.drift import MannKendallWilcoxonDriftDetector
-from online_outlier_detection.window.sliding_window import SlidingWindow
+from online_outlier_detection.pipelines.base.sliding_detector_pipeline import SlidingDetectorPipeline
+from online_outlier_detection.drift.mann_kendall_wilcoxon_drift_detector import MannKendallWilcoxonDriftDetector
 
 
-class MKWKIForestSlidingPipeline(SlidingDetectorPipeline, KalmanBasedDetectorPipeline):
+class MKWIForestSlidingPipeline(SlidingDetectorPipeline):
     def __init__(self,
                  score_threshold: float,
                  alpha: float,
@@ -15,33 +13,21 @@ class MKWKIForestSlidingPipeline(SlidingDetectorPipeline, KalmanBasedDetectorPip
                  window_size: int,
                  step: int = 1):
         super().__init__(score_threshold, alpha, slope_threshold, window_size, step)
+
         self.model = IsolationForest()
         self.drift_detector = MannKendallWilcoxonDriftDetector(alpha, slope_threshold)
 
-        self.filtered_window = SlidingWindow(self.window_size)
-
     def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
         self.window.append(x)
-
-        # Apply Kalman filter to current data
-        self.kf.predict()
-        self.kf.update(x)
-
-        filtered_x = self.kf.x
-
-        self.filtered_window.append(filtered_x)
 
         if not self.window.is_full():
             return None
 
         if not self.warm:
-            self.filtered_reference_window = self.filtered_window.get().copy()
-            scores, labels = self._first_training()
-
-            return scores, labels
+            return self._first_training()
 
         if self.current_step >= self.step_size:
-            if self.drift_detector.detect_drift(self.filtered_window.get(), self.filtered_reference_window):
+            if self.drift_detector.detect_drift(self.window.get(), self.reference_window):
                 self._retrain()
             self.current_step = 1
         else:

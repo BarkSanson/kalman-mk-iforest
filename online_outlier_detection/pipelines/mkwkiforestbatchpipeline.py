@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
-from online_outlier_detection.base.batch_detector_pipeline import BatchDetectorPipeline
-from online_outlier_detection.base.kalman_based_detector_pipeline import KalmanBasedDetectorPipeline
+from online_outlier_detection.pipelines.base.batch_detector_pipeline import BatchDetectorPipeline
+from online_outlier_detection.pipelines.base.kalman_based_detector_pipeline import KalmanBasedDetectorPipeline
 from online_outlier_detection.drift import MannKendallWilcoxonDriftDetector
 from online_outlier_detection.window.batch_window import BatchWindow
 

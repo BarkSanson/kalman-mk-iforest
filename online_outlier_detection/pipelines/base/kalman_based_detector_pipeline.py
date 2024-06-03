@@ -1,7 +1,7 @@
 import numpy as np
 from filterpy.kalman import KalmanFilter
 
-from online_outlier_detection.base.base_detector_pipeline import BaseDetectorPipeline
+from online_outlier_detection.pipelines.base.base_detector_pipeline import BaseDetectorPipeline
 
 
 class KalmanBasedDetectorPipeline(BaseDetectorPipeline):
