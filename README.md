@@ -39,17 +39,18 @@ As can be seen in the `online_outlier_detection` directory, 4 different implemen
 have been done. Two of them follow the design mentioned in the previous paragraph, which are
 `mkwiforestbatch.py` and `mkwiforestsliding.py`. The other two, namely `mkwkiforestbatch.py` and
 `mkwkiforestsliding.py` use the Kalman filter before performing any detection. The Kalman filter is
-a well-know algorithm to reduce noise in signal data. It was added to these implementations
-to explore whether it reduces the number of retrainings.
+a well-known algorithm to reduce noise in signal data. It was added to these implementations
+to explore whether the noise reduction would improve the performance of the models, specially
+the number of retrainings needed.
+
+## Structure of the repository
+This repository has two directories: `online_outlier_detection` and `models_metrics`. The first one contains
+the implementation of each model described before. It is implemented using interfaces to make it easier to
+change the models and to extend the code, if anyone wants to. The second directory contains the implementation
+of the program used to obtain the metrics of the models. It is very specific to my use case, but if you have
+the time and the will to adapt it to your use case, you can do it.
 
 ## Usage
-If you haven't created one, create a virtual environment with your preferred tool
-and activate it. Then, install all dependencies using
-```bash
-pip install -r requirements.txt
-```
-
-Then, you can import the package using the usual
-```python
-from online_outlier_detection import #<your-import>
-```
+To use the code, you need to install the requirements. You can do this by running `pip install -r requirements.txt`.
+Then, you can run the code by running `python main.py` inside the `models_metrics` folder. You can use
+`python main.py --help` to see the available options.
