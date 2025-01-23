@@ -5,6 +5,7 @@ from .window import Window
 
 class SlidingWindow(Window):
     def __init__(self, max_size: int):
+        super().__init__()
         self.max_size = max_size
         self.data = np.array([])
 

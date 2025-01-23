@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest
+from typing import Union
 
 from online_outlier_detection.pipelines.base.batch_detector_pipeline import BatchDetectorPipeline
 from online_outlier_detection.drift import MannKendallWilcoxonDriftDetector
@@ -15,11 +16,11 @@ class MKWIForestBatchPipeline(BatchDetectorPipeline):
         self.model = IsolationForest()
         self.drift_detector = MannKendallWilcoxonDriftDetector(alpha, slope_threshold)
 
-    def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
+    def update(self, x) -> Union[np.ndarray, int]:
         self.window.append(x)
 
         if not self.window.is_full():
-            return None
+            return len(self.window) - 1
 
         if not self.warm:
             return self._first_training()
@@ -30,11 +31,15 @@ class MKWIForestBatchPipeline(BatchDetectorPipeline):
             scores = np.abs(self.model.score_samples(self.reference_window.reshape(-1, 1)))
             labels = np.where(scores > self.score_threshold, 1, 0)
 
+            result = np.c_[self.reference_window, labels]
+
             self.window.clear()
-            return scores, labels
+            return result
 
         scores = np.abs(self.model.score_samples(self.window.get().reshape(-1, 1)))
         labels = np.where(scores > self.score_threshold, 1, 0)
 
+        result = np.c_[self.window.get(), labels]
+
         self.window.clear()
-        return scores, labels
+        return result

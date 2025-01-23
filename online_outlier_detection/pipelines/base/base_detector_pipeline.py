@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Union
 
 import numpy as np
 
@@ -32,7 +33,7 @@ class BaseDetectorPipeline(ABC):
         return self._retrains
 
     @abstractmethod
-    def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
+    def update(self, x) -> Union[np.ndarray, int]:
         pass
 
     def _first_training(self):

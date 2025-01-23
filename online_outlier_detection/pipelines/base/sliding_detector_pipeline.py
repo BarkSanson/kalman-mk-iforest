@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Union
 
 from online_outlier_detection.pipelines.base.base_detector_pipeline import BaseDetectorPipeline
 from online_outlier_detection.window.sliding_window import SlidingWindow
@@ -17,5 +18,5 @@ class SlidingDetectorPipeline(BaseDetectorPipeline):
         self.step_size = step_size
         self.current_step = 1
 
-    def update(self, x) -> tuple[np.ndarray, np.ndarray] | None:
+    def update(self, x) -> Union[np.ndarray, int]:
         pass
