@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Union
+from typing import Union, Tuple
 
 from .base_detector_pipeline import BaseDetectorPipeline
 from online_outlier_detection.window.batch_window import BatchWindow
@@ -21,5 +21,5 @@ class BatchDetectorPipeline(BaseDetectorPipeline):
 
         return scores, labels
 
-    def update(self, x) -> Union[np.ndarray, int]:
+    def update(self, x) -> Union[Tuple[np.ndarray, bool], int]:
         pass

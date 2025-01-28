@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Tuple
 
 import numpy as np
 
@@ -26,14 +26,8 @@ class BaseDetectorPipeline(ABC):
 
         self.warm = False
 
-        self._retrains = 0
-
-    @property
-    def retrains(self):
-        return self._retrains
-
     @abstractmethod
-    def update(self, x) -> Union[np.ndarray, int]:
+    def update(self, x) -> Union[Tuple[np.ndarray, bool], int]:
         pass
 
     def _first_training(self):
@@ -52,5 +46,3 @@ class BaseDetectorPipeline(ABC):
     def _retrain(self):
         self.reference_window = self.window.get().copy()
         self.model.fit(self.reference_window.reshape(-1, 1))
-        self._retrains += 1
-        print(f"Retraining model... Number of retrains: {self._retrains}")
